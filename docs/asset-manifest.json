@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/vitessce-cold-ischemia/static/css/main.136fc852.css",
+    "main.js": "/vitessce-cold-ischemia/static/js/main.1f59ec1b.js",
+    "static/js/453.19024b99.chunk.js": "/vitessce-cold-ischemia/static/js/453.19024b99.chunk.js",
+    "index.html": "/vitessce-cold-ischemia/index.html",
+    "main.136fc852.css.map": "/vitessce-cold-ischemia/static/css/main.136fc852.css.map",
+    "main.1f59ec1b.js.map": "/vitessce-cold-ischemia/static/js/main.1f59ec1b.js.map",
+    "453.19024b99.chunk.js.map": "/vitessce-cold-ischemia/static/js/453.19024b99.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.136fc852.css",
+    "static/js/main.1f59ec1b.js"
+  ]
+}
