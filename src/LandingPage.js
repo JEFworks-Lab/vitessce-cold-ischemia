@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './LandingPage.css';
 
 const links = [
@@ -31,9 +32,9 @@ export default function LandingPage() {
       <main>
         <div className="grid">
           {links.map((link, i) => (
-            <a key={i} className="box" href={link.path}>
+            <Link key={i} className="box" to={link.path}>
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
       </main>
