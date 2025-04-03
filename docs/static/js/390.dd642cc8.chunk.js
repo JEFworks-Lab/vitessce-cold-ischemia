@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkVitessce_App_to_Explore_Spatiotemporal_Patterns_of_Cold_Ischemia_in_Murine_Kidneys=self.webpackChunkVitessce_App_to_Explore_Spatiotemporal_Patterns_of_Cold_Ischemia_in_Murine_Kidneys||[]).push([[390],{390:(e,_,s)=>{s.r(_),s.d(_,{default:()=>a});var t=s(565);s(43),s(950);class a extends t.aQ{decodeBlock(e){return e}}}}]);
+//# sourceMappingURL=390.dd642cc8.chunk.js.map
