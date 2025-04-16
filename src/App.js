@@ -1,12 +1,9 @@
 import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route
-} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 
 import LandingPage from './LandingPage';
 import VitessceViewer from './VitessceViewer';
+
 
 import { myViewConfigCU as cortexUp } from './my-view-config-cortex-up';
 import { myViewConfigCD as cortexDown } from './my-view-config-cortex-down';
