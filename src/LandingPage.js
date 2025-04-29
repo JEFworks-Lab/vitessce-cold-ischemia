@@ -35,12 +35,11 @@ export default function LandingPage() {
 
       <section className="abstract-authors" id="abstract-authors">
         <p>
-          <strong>Abstract:</strong> Deceased donor kidneys usually undergo cold storage until kidney transplantation. Prolonged cold ischemia time leads to poor graft outcomes, however mechanistic understanding is limited. To bridge the knowledge gap, we leveraged spatial transcriptomics technology to perform full transcriptome characterization of cold ischemia injury (0-48 hours) using a murine model. We developed a computational workflow to identify spatiotemporal transcriptomic changes that accompany the injury pathophysiology in a compartment-specific manner. We identified potential metabolic reprogramming preferentially within the kidney inner medulla displaying strong OXPHOS (oxidative phosphorylation) signature while oxidative and ER (endoplasmic reticulum) stress was observed tissue wide. We found commonalities between the spatiotemporal transcriptomic presentation of cold ischemia and warm ischemia‒reperfusion injury, including an induction of an anti-viral like immune response throughout the renal tissue. Altogether, these systems-level biological insights enabled by our full transcriptome temporal characterization unveil a molecular basis for how cold ischemia injury may negatively affect graft performance. Moreover, our spatial analyses highlight pathological developments deep within the renal tissue, suggesting potential opportunities for new insights beyond biopsy-focused superficial tissue examinations. 
+          <strong>Abstract:</strong> Kidney transplantation remains the gold standard treatment strategy for end-stage renal disease. Deceased donor kidneys usually undergo cold storage until kidney transplantation, leading to cold ischemia injury that may contribute to poor graft outcomes. However, the molecular characterization of potential mechanisms of cold ischemia injury remains incomplete. To bridge this knowledge gap, we leveraged spatial transcriptomics technology to perform full transcriptome characterization of cold ischemia injury (0-48 hours) using a murine model. We developed a computational workflow to identify spatiotemporal transcriptomic changes that accompany the injury pathophysiology in a compartment-specific manner. We identified potential metabolic reprogramming preferentially within the kidney inner medulla displaying strong oxidative phosphorylation signature in an ischemic environment. We found commonalities between the spatiotemporal transcriptomic presentation of cold ischemia and warm ischemia‒reperfusion injury, including an induction of an anti-viral like immune response throughout the renal tissue. Altogether, these systems-level biological insights enabled by our full transcriptome temporal characterization unveil a molecular basis for how cold ischemia injury may negatively affect graft performance. Moreover, our spatial analyses highlight pathological developments deep within the renal tissue, suggesting potential opportunities for new insights beyond biopsy-focused superficial tissue examinations. 
           <br /><br />
           <strong>Authors:</strong> Srujan Singh, Shishir Kumar Patel, Ryo Matsuura, Dee Velazquez, Zhaoli Sun, Sanjeev Noel, Hamid Rabb, & Jean Fan 
           <br /><br />
         </p>
-        <br /><br />
         <a href="https://www.youtube.com/watch?v=L9qo2XZiQ4Y&t=194s&ab_channel=Prof.JeanFan" target="_blank" className="button">Read Manuscript</a>
       </section>
 
@@ -61,12 +60,7 @@ export default function LandingPage() {
         <h3>Tutorial</h3>
         <p>Watch the tutorial below to learn how to interact with our data.</p>
         <div className="video-wrapper">
-          <iframe
-            src="https://www.youtube.com/watch?v=L9qo2XZiQ4Y&t=194s&ab_channel=Prof.JeanFan"
-            frameBorder="0"
-            allowFullScreen
-            title="Tutorial Video"
-          ></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/PND06H7RCAw?si=tbb1qlqKaYa6xDgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
       </section>
 
