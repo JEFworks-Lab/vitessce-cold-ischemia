@@ -44,7 +44,7 @@ export default function LandingPage() {
       </section>
 
       <section className="about" id="about">
-        <h3>Overview</h3>
+        <h3>About</h3>
         <p>Our Cold Ischemia Kidney App is an interactive tool designed to make cutting-edge spatial transcriptomics data accessible and explorable. Focused on cold ischemia injury—a common complication during kidney transplant preservation—the app allows users to investigate gene expression changes across distinct kidney compartments: the <strong>cortex</strong>, <strong>outer medulla</strong>, and <strong>inner medulla</strong>.
 
           Each of these regions plays a unique biological role. The cortex contains proximal convoluted tubules vital for reabsorbing nutrients and water. The interface region includes thick ascending limbs involved in salt and water balance. The inner medulla is composed largely of collecting ducts responsible for urine concentration.
