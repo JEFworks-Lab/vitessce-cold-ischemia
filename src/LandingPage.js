@@ -40,7 +40,7 @@ export default function LandingPage() {
           <strong>Authors:</strong> Srujan Singh, Shishir Kumar Patel, Ryo Matsuura, Dee Velazquez, Zhaoli Sun, Sanjeev Noel, Hamid Rabb, & Jean Fan 
           <br /><br />
         </p>
-        <a href="https://www.youtube.com/watch?v=L9qo2XZiQ4Y&t=194s&ab_channel=Prof.JeanFan" target="_blank" className="button">Read Manuscript</a>
+        <a href="https://www.biorxiv.org/content/10.1101/2025.05.25.654911v1" target="_blank" className="button">Read Manuscript</a>
       </section>
 
       <section className="about" id="about">
