@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/vitessce-cold-ischemia/static/css/main.9025807b.css",
-    "main.js": "/vitessce-cold-ischemia/static/js/main.a76e8c9e.js",
+    "main.js": "/vitessce-cold-ischemia/static/js/main.17204fdc.js",
     "static/js/390.dd642cc8.chunk.js": "/vitessce-cold-ischemia/static/js/390.dd642cc8.chunk.js",
     "static/js/17.e28a2183.chunk.js": "/vitessce-cold-ischemia/static/js/17.e28a2183.chunk.js",
     "static/js/907.9b4106b2.chunk.js": "/vitessce-cold-ischemia/static/js/907.9b4106b2.chunk.js",
@@ -28,7 +28,7 @@
     "static/media/InnerMedulla_Downregulated_genes.png": "/vitessce-cold-ischemia/static/media/InnerMedulla_Downregulated_genes.8e39053dfc56d00ff660.png",
     "index.html": "/vitessce-cold-ischemia/index.html",
     "main.9025807b.css.map": "/vitessce-cold-ischemia/static/css/main.9025807b.css.map",
-    "main.a76e8c9e.js.map": "/vitessce-cold-ischemia/static/js/main.a76e8c9e.js.map",
+    "main.17204fdc.js.map": "/vitessce-cold-ischemia/static/js/main.17204fdc.js.map",
     "390.dd642cc8.chunk.js.map": "/vitessce-cold-ischemia/static/js/390.dd642cc8.chunk.js.map",
     "17.e28a2183.chunk.js.map": "/vitessce-cold-ischemia/static/js/17.e28a2183.chunk.js.map",
     "907.9b4106b2.chunk.js.map": "/vitessce-cold-ischemia/static/js/907.9b4106b2.chunk.js.map",
@@ -50,6 +50,6 @@
   },
   "entrypoints": [
     "static/css/main.9025807b.css",
-    "static/js/main.a76e8c9e.js"
+    "static/js/main.17204fdc.js"
   ]
 }
