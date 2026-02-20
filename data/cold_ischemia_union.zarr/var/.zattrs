@@ -1,0 +1,16 @@
+{
+    "_index": "_index",
+    "column-order": [
+        "cortex_up",
+        "cortex_down",
+        "inner_medulla_up",
+        "inner_medulla_down",
+        "outer_medulla_up",
+        "outer_medulla_down",
+        "Cortex_Slopes",
+        "Inner_Medulla_Slopes",
+        "Outer_Medulla_Slopes"
+    ],
+    "encoding-type": "dataframe",
+    "encoding-version": "0.2.0"
+}
