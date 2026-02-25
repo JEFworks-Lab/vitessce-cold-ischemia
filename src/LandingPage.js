@@ -1,20 +1,13 @@
 import React from 'react';
 import './LandingPage.css';
 import { Link } from 'react-router-dom';
-import './Cortex_Downregulated_genes.png';
-import './Cortex_Upregulated_genes.png';
-import './OuterMedulla_Downregulated_genes.png';
-import './OuterMedulla_Upregulated_genes.png';
-import './InnerMedulla_Upregulated_genes.png';
-import './InnerMedulla_Downregulated_genes.png';
 
 const links = [
-  { path: "/cortex-up", label: "Upregulated Cortex Genes", image: `${process.env.PUBLIC_URL}/Cortex_Upregulated_genes.png` },
-  { path: "/outer-medulla-up", label: "Upregulated Outer Medulla Genes", image: `${process.env.PUBLIC_URL}/OuterMedulla_Upregulated_genes.png` },
-  { path: "/inner-medulla-up", label: "Upregulated Inner Medulla Genes", image: `${process.env.PUBLIC_URL}/InnerMedulla_Upregulated_genes.png` },
-  { path: "/cortex-down", label: "Downregulated Cortex Genes", image: `${process.env.PUBLIC_URL}/Cortex_Downregulated_genes.png` },
-  { path: "/outer-medulla-down", label: "Downregulated Outer Medulla Genes", image: `${process.env.PUBLIC_URL}/OuterMedulla_Downregulated_genes.png` },
-  { path: "/inner-medulla-down", label: "Downregulated Inner Medulla Genes", image: `${process.env.PUBLIC_URL}/InnerMedulla_Downregulated_genes.png` },
+  {
+    path: "cold-ischemia-app",
+    label: "Launch App",
+    image: `${process.env.PUBLIC_URL}/kidney_gif.gif`
+  }
 ];
 
 
@@ -25,7 +18,7 @@ export default function LandingPage() {
         <a href="#abstract-authors">Abstract</a>
         <a href="#about">About</a>
         <a href="#tutorial">Tutorial</a>
-        <a href="#apps">Web Apps</a>
+        <a href="#apps">Interactive Web App</a>
         <a href="#github">GitHub</a>
       </nav>
 
@@ -60,12 +53,12 @@ export default function LandingPage() {
         <h3>Tutorial</h3>
         <p>Watch the tutorial below to learn how to interact with our data.</p>
         <div className="video-wrapper">
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/PND06H7RCAw?si=tbb1qlqKaYa6xDgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/PND06H7RCAw?si=tbb1qlqKaYa6xDgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         </div>
       </section>
 
       <section className="apps" id="apps">
-        <h3>Explore the Web Apps</h3>
+        <h3>Explore the Web App</h3>
         <div className="grid">
           {links.map(({ path, label, image }) => (
             <Link to={path} className="app-card" style={{ backgroundImage: `url(${image})` }} key={path}>
@@ -85,9 +78,9 @@ export default function LandingPage() {
       </section>
 
       <footer className="page-footer">
-        <p>&copy; JEFworks-Lab 2025</p>
+        <p>&copy; JEFworks-Lab 2026</p>
         <p>
-          Web development by <a href="https://dvelazq.github.io/">Dee Velazquez</a>, using <a href="https://vitessce.io/">Vitessce</a>
+          Web development by <a href="https://dvelazq.github.io/">Dee Velazquez</a>
         </p>
         <p>
           Kidney Icon by <a href="https://www.flaticon.com/free-icons/kidney">Kerismaker - Flaticon</a>

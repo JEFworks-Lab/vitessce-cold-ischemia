@@ -1,5 +1,6 @@
 html {
   height: 100%;
+  width: 100%;
 }
 
 body {
@@ -12,7 +13,14 @@ body {
   flex-direction: column;
   flex: 1;
   height: 100%;
+  width: 100%;
   margin: 0;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  flex: 1 1 auto;
 }
 
 .vitessce-container {
