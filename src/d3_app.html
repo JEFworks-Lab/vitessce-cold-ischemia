@@ -18,19 +18,29 @@
                         <p> Data from <a href="https://zenodo.org/records/15359609">Singh <i>et al.</i> 2025</a>.
                         See the original <a href="https://www.biorxiv.org/content/10.1101/2025.05.25.654911v1">publication</a> for more information.
                         </p>
-                        <br />
-                        <p> <b><u>Usage:</u></b>
-                        Use the mouse to pan and zoom. Hold the Control key to rotate. Hold the Shift key and hover over points
-                        for more information. Color by gene or other features. Click the legend to change the color. Filter by different
-                        features.
-                        </p>
-                        <br>
                     </div>
                 </div>
 
                 <div id="legend-section">
                     <h2>Legend</h2>
                     <div id="legend" class="legend"></div>
+                </div>
+
+                <div id="usage-section">
+                    <h2>Usage</h2>
+                    <p>
+                        Use the mouse to pan and zoom. Hold the Control key to rotate. Hold the Shift key and hover over spots to display more information. Toggle light/dark mode with the switch at the top of the right panel. Click and drag between panels to extend/shrink their size. 
+                        <br><br>
+                        Click the legend to change the color palettes. If gene is selected, move sliders to adjust gene range in legend. 
+                        <br><br>
+                        On the right is the control/gene panel. In the control panel, use the drop down to select what coordinates to display and highlight/color the data by kidney compartment (default) or other attributes. In the control panel, you have the option to search for a gene to color the data. Add filters to filter the data by different attributes. 
+                        <br><br>
+                        In the gene panel, filter/search for genes of interest based on upregulation or downregulation in different compartments (eg. Cortex Up- upregulated in cortex) or based on linear regression slope values (eg. Inner Medulla Slopes) using dropdowns and entries. Click a gene to display gene expression for that gene in the data panel and to view its expression in the timecourse plot panel. For searching for upregulated/downregulated genes, use the dropdown at the top to display all upregulated/downregulated genes or not. For searching for genes using slope values, use commands !nan (remove NaN ganes), nan (show only NaN genes), > (greater than), < (less than). Example entries: !nan >0; !nan, >10. 
+                        <br><br>
+                        In the bottom timecourse panel, toggle the triangle in the upper right corner to display/hide the timecourse plot. Sslect/unselect kidney compartments to show on plot.
+                        <br><br>
+                        Reset camera and point size with the buttons in the control panel. Adjust point size and sample rate with the sliders in the control panel. 
+                    </p>
                 </div>
             </div>
         </div>
@@ -78,26 +88,11 @@
                     
                     <div id="controls-tab" class="tab-content active">
                         <div class="control-group">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                                <div>
-                                    <label for="coordX">X Coordinate:</label>
-                                    <select id="coordX" style="width: 100%;">
-                                        <option value="">Loading...</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="coordY">Y Coordinate:</label>
-                                    <select id="coordY" style="width: 100%;">
-                                        <option value="">Loading...</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="coordZ">Z Coordinate:</label>
-                                    <select id="coordZ" style="width: 100%;">
-                                        <option value="none">None</option>
-                                        <option value="">Loading...</option>
-                                    </select>
-                                </div>
+                            <div>
+                                <label for="coordPreset">Coordinate:</label>
+                                <select id="coordPreset" style="width: 100%;">
+                                    <option value="">Loading...</option>
+                                </select>
                             </div>
                         </div>
 

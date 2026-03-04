@@ -24,10 +24,12 @@
     --table-row-hover: rgba(255, 255, 255, 0.08);
     --frozen-bg: #0b0b0b;
     --frozen-shadow: 6px 0 14px rgba(0, 0, 0, 0.35);
+    --frozen-hover-bg: #1a1a1a;
     --accent: #7ad0ff;
     --accent-soft: rgba(122, 208, 255, 0.18);
     --overlay-bg: #1b1d22;
     --overlay-border: rgba(255, 255, 255, 0.18);
+    --checkbox-check: #0b0b0b;
 }
 
 body[data-theme="light"] {
@@ -50,10 +52,12 @@ body[data-theme="light"] {
     --table-row-hover: #e0e6f0;
     --frozen-bg: rgba(255, 255, 255, 0.98);
     --frozen-shadow: 6px 0 14px rgba(18, 22, 28, 0.12);
+    --frozen-hover-bg: #e0e6f0;
     --accent: #1f6fde;
     --accent-soft: rgba(31, 111, 222, 0.18);
     --overlay-bg: #ffffff;
     --overlay-border: rgba(26, 34, 43, 0.16);
+    --checkbox-check: #ffffff;
 }
 
 body[data-theme="light"] .timecourse-tooltip {
@@ -143,6 +147,26 @@ body {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+#usage-section {
+    margin-top: 18px;
+}
+
+#usage-section h2 {
+    font-size: 0.95em;
+    margin-bottom: 10px;
+    color: var(--text);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#usage-section p {
+    font-size: 0.85em;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin: 0;
 }
 
 .legend-controls {
@@ -399,6 +423,44 @@ body {
 
 .timecourse-legend-label input {
     margin: 0;
+}
+
+.timecourse-legend-label .timecourse-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    display: inline-grid;
+    place-content: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.timecourse-legend-label .timecourse-checkbox::after {
+    content: '';
+    width: 4px;
+    height: 8px;
+    border: solid var(--checkbox-check);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.timecourse-legend-label .timecourse-checkbox:checked {
+    background: var(--checkbox-fill, var(--control-accent));
+    border-color: var(--checkbox-fill, var(--control-accent));
+}
+
+.timecourse-legend-label .timecourse-checkbox:checked::after {
+    opacity: 1;
+}
+
+.timecourse-legend-label .timecourse-checkbox:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .timecourse-legend-swatch {
@@ -848,19 +910,26 @@ body.resizing-vertical {
     background-color: var(--table-row-even) !important;
 }
 
-#gene-table .tabulator-row .tabulator-cell.tabulator-frozen,
-#gene-table .tabulator-row .tabulator-cell.tabulator-frozen-left {
-    background-color: var(--frozen-bg) !important;
+#gene-table .tabulator-row.tabulator-row-even:hover,
+#gene-table .tabulator-row.tabulator-row-even:hover .tabulator-cell {
+    background-color: var(--table-row-hover) !important;
 }
 
-#gene-table .tabulator-row:hover .tabulator-cell.tabulator-frozen,
-#gene-table .tabulator-row:hover .tabulator-cell.tabulator-frozen-left {
+#gene-table .tabulator-row .tabulator-cell.tabulator-frozen,
+#gene-table .tabulator-row .tabulator-cell.tabulator-frozen-left {
     background-color: var(--frozen-bg) !important;
 }
 
 #gene-table .tabulator-row.tabulator-row-even .tabulator-cell.tabulator-frozen,
 #gene-table .tabulator-row.tabulator-row-even .tabulator-cell.tabulator-frozen-left {
     background-color: var(--frozen-bg) !important;
+}
+
+#gene-table .tabulator-row:hover .tabulator-cell.tabulator-frozen,
+#gene-table .tabulator-row:hover .tabulator-cell.tabulator-frozen-left,
+#gene-table .tabulator-row.tabulator-row-even:hover .tabulator-cell.tabulator-frozen,
+#gene-table .tabulator-row.tabulator-row-even:hover .tabulator-cell.tabulator-frozen-left {
+    background-color: var(--frozen-hover-bg) !important;
 }
 
 #gene-table .tabulator-row.gene-row-selected {

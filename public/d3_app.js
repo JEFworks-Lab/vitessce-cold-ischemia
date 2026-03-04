@@ -121,6 +121,28 @@ function formatCoordinateLabel(embedding, columnName, columnIndex) {
     return embedding;
 }
 
+function normalizeCoordinateKey(value) {
+    return String(value || '').toLowerCase();
+}
+
+function getDefaultPointSizeForCurrentCoordinates(presetId = selectedCoordinatePreset) {
+    return presetId === 'harmonized_tsne'
+        ? HARMONIZED_TSNE_POINT_SIZE
+        : DEFAULT_POINT_SIZE;
+}
+
+function setPointSizeValue(nextValue) {
+    const pointSizeInput = document.getElementById('pointSize');
+    const pointSizeValue = document.getElementById('pointSizeValue');
+    if (!pointSizeInput) {
+        return;
+    }
+    pointSizeInput.value = nextValue;
+    if (pointSizeValue) {
+        pointSizeValue.textContent = Number(nextValue).toFixed(1);
+    }
+}
+
 function renderLegendPaletteSelector(legendDiv) {
     const controls = document.createElement('div');
     controls.className = 'legend-controls';
@@ -420,6 +442,7 @@ let selectGeneGlobal = null;
 // Configuration for downsampling
 const MAX_POINTS = 1000000; // Reduced for sphere rendering performance
 const DEFAULT_POINT_SIZE = 10;
+const HARMONIZED_TSNE_POINT_SIZE = 0.2;
     
 // Coordinate configuration - will be populated dynamically
 let availableCoordinateSources = {
@@ -427,14 +450,17 @@ let availableCoordinateSources = {
     obsm: []  // Embeddings from obsm (e.g., 'Global_Spatial', 'X_pca', 'X_umap')
 };
 
-// Selected coordinate columns for x, y, and z
-let selectedXCoord = null;  // Format: 'obs:column_name' or 'obsm:embedding_name:column_index'
+// Selected coordinate preset and columns for x/y (z is intentionally disabled).
+let coordinatePresets = [];
+let selectedCoordinatePreset = null;
+let selectedXCoord = null;
 let selectedYCoord = null;
-let selectedZCoord = null;  // Can be null for "None"
+let selectedZCoord = null;
 
 // These will be populated from the zarr obs columns
 let column_names_categorical = [];
 let column_names_continuous = [];
+let timeColumnName = null;
 
 // Global variables
 let scene, camera, renderer, controls;
@@ -1131,7 +1157,7 @@ function handleHover(event) {
                     
                     // Show highlight at the actual point position (not intersection point)
                     const pointPosition = new THREE.Vector3(point.x, point.y, point.z);
-                    showHighlight(pointPosition, point, event.clientX, event.clientY);
+                    showHighlight(pointPosition, point, event.clientX, event.clientY, dataIdx);
                     
                     // Log for debugging (only occasionally to avoid spam)
                     if (Math.random() < 0.01) { // Log 1% of the time
@@ -1157,7 +1183,7 @@ function handleHover(event) {
 }
 
 // Show highlight and tooltip for a point
-function showHighlight(position, point, mouseX, mouseY) {
+function showHighlight(position, point, mouseX, mouseY, dataIdx) {
     if (!highlightSphere || !tooltip) {
         console.warn('[Hover] Highlight sphere or tooltip not available');
         return;
@@ -1174,17 +1200,36 @@ function showHighlight(position, point, mouseX, mouseY) {
     // Create tooltip content
     const colorBy = document.getElementById('colorBy')?.value || 'gene';
     let tooltipContent = '<div style="font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 4px;">Point Information</div>';
-    
+
     if (point.barcode !== undefined && point.barcode !== null && String(point.barcode).length > 0) {
         tooltipContent += `<div style="margin-bottom: 4px;"><strong>Barcode:</strong> ${point.barcode}</div>`;
     }
 
+    const timeKey = timeColumnName || [...column_names_categorical, ...column_names_continuous]
+        .find(col => typeof col === 'string' && /time|hour/i.test(col));
+    if (timeKey && point[timeKey] !== undefined && point[timeKey] !== null && point[timeKey] !== '') {
+        const rawTime = point[timeKey];
+        const timeLabel = typeof rawTime === 'number' && !Number.isNaN(rawTime)
+            ? `${rawTime} hr`
+            : String(rawTime);
+        tooltipContent += `<div style="margin-bottom: 4px;"><strong>Time:</strong> ${timeLabel}</div>`;
+    }
+
     // Add coordinates
     tooltipContent += `<div style="margin-bottom: 4px;"><strong>Coordinates:</strong><br>(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)})</div>`;
+
+    if (selectedGene && geneExpressionCache && geneExpressionCache.geneName === selectedGene && geneExpressionCache.data && dataIdx !== undefined) {
+        const exprVal = geneExpressionCache.data[dataIdx];
+        const exprLabel = Number.isFinite(exprVal) ? exprVal.toFixed(4) : 'n/a';
+        tooltipContent += `<div style="margin-bottom: 4px;"><strong>${selectedGene}:</strong> ${exprLabel}</div>`;
+    }
     
     // Add all categorical attributes
     column_names_categorical.forEach(col => {
         if (col && col.toLowerCase && col.toLowerCase() === 'barcode') {
+            return;
+        }
+        if (timeKey && col === timeKey) {
             return;
         }
         if (point[col] !== undefined && point[col] !== '') {
@@ -1194,6 +1239,9 @@ function showHighlight(position, point, mouseX, mouseY) {
     
     // Add all continuous attributes
     column_names_continuous.forEach(col => {
+        if (timeKey && col === timeKey) {
+            return;
+        }
         if (point[col] !== null && point[col] !== undefined) {
             tooltipContent += `<div style="margin-bottom: 2px;"><strong>${col}:</strong> ${point[col].toFixed(4)}</div>`;
         }
@@ -1513,7 +1561,8 @@ function renderTimecourseLegend(compartments) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = timecourseVisibleCompartments.has(comp);
-        checkbox.style.accentColor = getTimecourseColor(comp);
+        checkbox.className = 'timecourse-checkbox';
+        checkbox.style.setProperty('--checkbox-fill', getTimecourseColor(comp));
         checkbox.addEventListener('change', () => {
             if (checkbox.checked) {
                 timecourseVisibleCompartments.add(comp);
@@ -2072,6 +2121,91 @@ async function discoverCoordinateSources(root, baseUrl) {
     return sources;
 }
 
+function findEmbeddingCoordinates(...embeddingNames) {
+    const targets = new Set(embeddingNames.map(normalizeCoordinateKey));
+    return availableCoordinateSources.obsm
+        .filter((coord) => targets.has(normalizeCoordinateKey(coord.embedding)))
+        .sort((a, b) => (a.columnIndex ?? 0) - (b.columnIndex ?? 0));
+}
+
+function pickCoordinateByColumnName(candidates, names) {
+    const targetNames = new Set(names.map(normalizeCoordinateKey));
+    return candidates.find((coord) => targetNames.has(normalizeCoordinateKey(coord.columnName)));
+}
+
+function pickCoordinatePair(candidates, xNames, yNames) {
+    if (!candidates || candidates.length === 0) {
+        return null;
+    }
+    const xCoord = pickCoordinateByColumnName(candidates, xNames)
+        || candidates.find((coord) => coord.columnIndex === 0)
+        || candidates[0];
+    const yCoord = pickCoordinateByColumnName(candidates, yNames)
+        || candidates.find((coord) => coord.columnIndex === 1)
+        || candidates[1];
+
+    if (!xCoord || !yCoord || xCoord === yCoord) {
+        return null;
+    }
+    return { xCoord, yCoord };
+}
+
+function buildCoordinatePresets() {
+    const presets = [];
+
+    const globalSpatialCoords = findEmbeddingCoordinates('Global_Spatial');
+    const spatialCoords = findEmbeddingCoordinates('spatial');
+    const harmonizedTsneCoords = findEmbeddingCoordinates('Harmonized_tSNE', 'harmonized_tsne');
+
+    const spatialPair = pickCoordinatePair(
+        globalSpatialCoords,
+        ['global_x', 'x'],
+        ['global_y', 'y']
+    ) || pickCoordinatePair(
+        spatialCoords,
+        ['x', 'global_x'],
+        ['y', 'global_y']
+    );
+
+    if (spatialPair) {
+        presets.push({
+            id: 'spatial',
+            label: 'Spatial (X/Y)',
+            xCoord: spatialPair.xCoord,
+            yCoord: spatialPair.yCoord
+        });
+    }
+
+    const tsnePair = pickCoordinatePair(
+        harmonizedTsneCoords,
+        ['tsne_1', 'tSNE_1', 'dim0'],
+        ['tsne_2', 'tSNE_2', 'dim1']
+    );
+
+    if (tsnePair) {
+        presets.push({
+            id: 'harmonized_tsne',
+            label: 'Harmonized tSNE (1/2)',
+            xCoord: tsnePair.xCoord,
+            yCoord: tsnePair.yCoord
+        });
+    }
+
+    if (presets.length === 0 && availableCoordinateSources.obsm.length >= 2) {
+        const fallback = pickCoordinatePair(availableCoordinateSources.obsm, [], []);
+        if (fallback) {
+            presets.push({
+                id: 'fallback',
+                label: 'Available Coordinates',
+                xCoord: fallback.xCoord,
+                yCoord: fallback.yCoord
+            });
+        }
+    }
+
+    return presets;
+}
+
 /**
  * Load coordinate values from a coordinate source
  */
@@ -2165,6 +2299,43 @@ async function loadCoordinateValues(root, coordSource, nCells) {
         }
     }
     return new Array(nCells).fill(0);
+}
+
+async function applyCoordinatePreset(presetId, options = {}) {
+    const { recreatePointCloud = true } = options;
+
+    if (!zarrRoot || !allData || allData.length === 0) {
+        return false;
+    }
+
+    const preset = coordinatePresets.find((entry) => entry.id === presetId) || coordinatePresets[0];
+    if (!preset || !preset.xCoord || !preset.yCoord) {
+        console.warn('[applyCoordinatePreset] No valid coordinate preset available');
+        return false;
+    }
+
+    selectedCoordinatePreset = preset.id;
+    selectedXCoord = preset.xCoord;
+    selectedYCoord = preset.yCoord;
+    selectedZCoord = null;
+
+    const nCells = allData.length;
+    const xValues = await loadCoordinateValues(zarrRoot, selectedXCoord, nCells);
+    const yValues = await loadCoordinateValues(zarrRoot, selectedYCoord, nCells);
+
+    flipAxisInPlace(xValues, getAxisFlip(selectedXCoord, 'x'));
+    flipAxisInPlace(yValues, getAxisFlip(selectedYCoord, 'y'));
+
+    for (let i = 0; i < nCells; i++) {
+        allData[i].x = xValues[i] || 0;
+        allData[i].y = yValues[i] || 0;
+        allData[i].z = 0;
+    }
+
+    if (recreatePointCloud) {
+        await createPointCloud();
+    }
+    return true;
 }
 
 /**
@@ -2347,6 +2518,13 @@ async function loadData() {
         
         console.log(`[loadData] Discovered ${column_names_categorical.length} categorical and ${column_names_continuous.length} continuous columns`);
 
+        timeColumnName = columnOrder.find((name) => name === 'Time')
+            || columnOrder.find((name) => name && name.toLowerCase() === 'time')
+            || null;
+        if (timeColumnName) {
+            await ensureColumnLoaded(timeColumnName);
+        }
+
         const compartmentMatch = column_names_categorical.find(
             (name) => name && name.toLowerCase() === 'compartment'
         );
@@ -2355,77 +2533,27 @@ async function loadData() {
         // Discover available coordinate sources
         loadingText.textContent = 'Discovering coordinate sources...';
         availableCoordinateSources = await discoverCoordinateSources(root, baseUrl);
-        
-        // Set default coordinate selections (only from obsm embeddings)
-        if (!selectedXCoord || !selectedYCoord) {
-            // Try to find global_x and global_y first (from obsm Global_Spatial)
-            let globalX = availableCoordinateSources.obsm.find(c => 
-                c.embedding === 'Global_Spatial' && c.columnName === 'global_x');
-            let globalY = availableCoordinateSources.obsm.find(c => 
-                c.embedding === 'Global_Spatial' && c.columnName === 'global_y');
-            
-            if (globalX && globalY) {
-                selectedXCoord = globalX;
-                selectedYCoord = globalY;
-            } else {
-                // Try to find spatial coordinates
-                const spatialX = availableCoordinateSources.obsm.find(c => 
-                    c.embedding === 'spatial' && (c.columnName === 'x' || c.columnIndex === 0));
-                const spatialY = availableCoordinateSources.obsm.find(c => 
-                    c.embedding === 'spatial' && (c.columnName === 'y' || c.columnIndex === 1));
-                
-                if (spatialX && spatialY) {
-                    selectedXCoord = spatialX;
-                    selectedYCoord = spatialY;
-                } else {
-                    // Use first two available obsm dimensions
-                    if (availableCoordinateSources.obsm.length >= 2) {
-                        selectedXCoord = availableCoordinateSources.obsm[0];
-                        selectedYCoord = availableCoordinateSources.obsm[1];
-                    } else {
-                        console.error('[loadData] No obsm coordinate sources found');
-                        throw new Error('No obsm coordinate sources found. Please check the zarr file structure.');
-                    }
-                }
-            }
-        }
-        
-        // Z coordinate defaults to None (null)
-        if (!selectedZCoord) {
-            selectedZCoord = null;
-        }
-        
-        console.log('[loadData] Selected coordinates:', {
-            x: selectedXCoord?.displayName,
-            y: selectedYCoord?.displayName,
-            z: selectedZCoord ? selectedZCoord.displayName : 'None'
-        });
-        
-        // Load coordinate values
-        loadingText.textContent = 'Loading coordinates...';
-        const xValues = await loadCoordinateValues(root, selectedXCoord, nCells);
-        const yValues = await loadCoordinateValues(root, selectedYCoord, nCells);
-        
-        // Load z coordinate if selected (optional, can be None)
-        let zValues = null;
-        if (selectedZCoord) {
-            zValues = await loadCoordinateValues(root, selectedZCoord, nCells);
+
+        coordinatePresets = buildCoordinatePresets();
+        if (coordinatePresets.length === 0) {
+            console.error('[loadData] No coordinate presets available');
+            throw new Error('No coordinate presets found. Expected Spatial or Harmonized tSNE coordinates.');
         }
 
-        flipAxisInPlace(xValues, getAxisFlip(selectedXCoord, 'x'));
-        flipAxisInPlace(yValues, getAxisFlip(selectedYCoord, 'y'));
-        if (zValues) {
-            flipAxisInPlace(zValues, getAxisFlip(selectedZCoord, 'z'));
+        if (!selectedCoordinatePreset || !coordinatePresets.some((entry) => entry.id === selectedCoordinatePreset)) {
+            const spatialPreset = coordinatePresets.find((entry) => entry.id === 'spatial');
+            selectedCoordinatePreset = spatialPreset ? spatialPreset.id : coordinatePresets[0].id;
         }
-        
-        // Map coordinate columns to x, y, z
-        for (let i = 0; i < nCells; i++) {
-            allData[i].x = xValues[i] || 0;
-            allData[i].y = yValues[i] || 0;
-            allData[i].z = zValues ? (zValues[i] || 0) : 0;
-        }
-        
-        // Update coordinate selection UI
+
+        loadingText.textContent = 'Loading coordinates...';
+        await applyCoordinatePreset(selectedCoordinatePreset, { recreatePointCloud: false });
+
+        console.log('[loadData] Selected coordinate preset:', selectedCoordinatePreset, {
+            x: selectedXCoord?.displayName,
+            y: selectedYCoord?.displayName
+        });
+
+        // Update coordinate preset UI
         updateCoordinateSelectionUI();
         
         // Load sparse matrix metadata for gene lookups
@@ -2649,7 +2777,7 @@ function setupGeneAutocomplete(geneNames) {
         if (!geneName || !geneNames.includes(geneName)) {
             return;
         }
-
+        
         selectedGene = geneName;
         geneInput.value = geneName;
         geneInput.classList.add('has-gene');
@@ -3135,7 +3263,6 @@ async function updateLegend() {
             legendDiv.appendChild(moreDiv);
         }
     }
-
 }
 
 // Set camera to x-y plane view
@@ -3177,6 +3304,37 @@ function setCameraToXYPlaneView(geometry) {
     initialCameraState.target = center.clone();
     
     return { position: cameraPosition.clone(), target: center.clone() };
+}
+
+function resetCameraToCurrentVisibleData() {
+    if (!camera || !controls) {
+        return;
+    }
+    if (visibleIndices && visibleIndices.length > 0 && allData && allData.length > 0) {
+        const positions = [];
+        const maxSample = 10000;
+        const step = Math.max(1, Math.floor(visibleIndices.length / maxSample));
+        for (let i = 0; i < visibleIndices.length; i += step) {
+            const point = allData[visibleIndices[i]];
+            if (!point) continue;
+            positions.push(point.x, point.y, point.z);
+        }
+        if (positions.length > 0) {
+            const tempGeometry = new THREE.BufferGeometry();
+            tempGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+            tempGeometry.computeBoundingBox();
+            setCameraToXYPlaneView(tempGeometry);
+            tempGeometry.dispose();
+            cameraInitialized = true;
+            return;
+        }
+    }
+    if (initialCameraState.position && initialCameraState.target) {
+        camera.position.copy(initialCameraState.position);
+        controls.target.copy(initialCameraState.target);
+        camera.lookAt(initialCameraState.target);
+        controls.update();
+    }
 }
 
 // Create point cloud with spheres
@@ -4440,145 +4598,35 @@ async function resetGeneWinsorization() {
 
 // Update coordinate selection UI
 function updateCoordinateSelectionUI() {
-    const xSelect = document.getElementById('coordX');
-    const ySelect = document.getElementById('coordY');
-    const zSelect = document.getElementById('coordZ');
-    
-    if (!xSelect || !ySelect || !zSelect) return;
-    
-    // Clear existing options
-    xSelect.innerHTML = '';
-    ySelect.innerHTML = '';
-    zSelect.innerHTML = '';
-    
-    // Add "None" option to Z coordinate
-    const noneOption = document.createElement('option');
-    noneOption.value = 'none';
-    noneOption.textContent = 'None';
-    if (!selectedZCoord) {
-        noneOption.selected = true;
-    }
-    zSelect.appendChild(noneOption);
-    
-    // Only add obsm options (obs columns are not used for coordinates)
-    // Add obsm options
-    availableCoordinateSources.obsm.forEach(coord => {
-        const optionX = document.createElement('option');
-        // Use columnName if available, otherwise use columnIndex
-        const value = coord.columnName ? 
-            `obsm:${coord.embedding}:${coord.columnName}` : 
-            `obsm:${coord.embedding}:${coord.columnIndex}`;
-        optionX.value = value;
-        optionX.textContent = coord.displayName;
-        if (selectedXCoord && selectedXCoord.source === 'obsm' && 
-            selectedXCoord.embedding === coord.embedding && 
-            selectedXCoord.columnIndex === coord.columnIndex) {
-            optionX.selected = true;
+    const coordSelect = document.getElementById('coordPreset');
+    if (!coordSelect) return;
+
+    coordSelect.innerHTML = '';
+    coordinatePresets.forEach((preset) => {
+        const option = document.createElement('option');
+        option.value = preset.id;
+        option.textContent = preset.label;
+        if (preset.id === selectedCoordinatePreset) {
+            option.selected = true;
         }
-        xSelect.appendChild(optionX);
-        
-        const optionY = document.createElement('option');
-        optionY.value = value;
-        optionY.textContent = coord.displayName;
-        if (selectedYCoord && selectedYCoord.source === 'obsm' && 
-            selectedYCoord.embedding === coord.embedding && 
-            selectedYCoord.columnIndex === coord.columnIndex) {
-            optionY.selected = true;
-        }
-        ySelect.appendChild(optionY);
-        
-        // Add to Z coordinate dropdown as well
-        const optionZ = document.createElement('option');
-        optionZ.value = value;
-        optionZ.textContent = coord.displayName;
-        if (selectedZCoord && selectedZCoord.source === 'obsm' && 
-            selectedZCoord.embedding === coord.embedding && 
-            selectedZCoord.columnIndex === coord.columnIndex) {
-            optionZ.selected = true;
-        }
-        zSelect.appendChild(optionZ);
+        coordSelect.appendChild(option);
     });
 }
 
 // Handle coordinate selection change
 async function handleCoordinateChange() {
-    const xSelect = document.getElementById('coordX');
-    const ySelect = document.getElementById('coordY');
-    const zSelect = document.getElementById('coordZ');
-    
-    if (!xSelect || !ySelect || !zSelect || !zarrRoot) return;
-    
-    const xValue = xSelect.value;
-    const yValue = ySelect.value;
-    const zValue = zSelect.value;
-    
-    // Parse coordinate source (only obsm sources are allowed)
-    function parseCoordSource(value) {
-        if (!value || value === 'none') return null;
-        const parts = value.split(':');
-        if (parts.length < 2) return null;
-        
-        // Only parse obsm sources (obs sources are not used for coordinates)
-        if (parts[0] === 'obsm' && parts.length >= 3) {
-            const embedding = parts[1];
-            // For obsm, the value format is "obsm:embedding:columnIndex" or "obsm:embedding:columnName"
-            // Try to parse as integer first (column index)
-            const colIdx = parseInt(parts[2]);
-            if (!isNaN(colIdx)) {
-                return availableCoordinateSources.obsm.find(c => 
-                    c.embedding === embedding && c.columnIndex === colIdx);
-            } else {
-                // Try to match by column name
-                const match = availableCoordinateSources.obsm.find(c => 
-                    c.embedding === embedding && c.columnName === parts[2]);
-                if (match) return match;
-                // If no match by name, try to find by embedding and use first column
-                return availableCoordinateSources.obsm.find(c => c.embedding === embedding);
-            }
-        }
-        return null;
-    }
-    
-    const newXCoord = parseCoordSource(xValue);
-    const newYCoord = parseCoordSource(yValue);
-    const newZCoord = parseCoordSource(zValue); // Can be null for "None"
-    
-    if (!newXCoord || !newYCoord) {
-        console.warn('[handleCoordinateChange] Invalid coordinate selection');
+    const coordSelect = document.getElementById('coordPreset');
+    if (!coordSelect || !zarrRoot) return;
+
+    const presetId = coordSelect.value;
+    if (!presetId) {
+        console.warn('[handleCoordinateChange] No coordinate preset selected');
         return;
     }
-    
-    selectedXCoord = newXCoord;
-    selectedYCoord = newYCoord;
-    selectedZCoord = newZCoord; // Can be null
-    
-    console.log('[handleCoordinateChange] Loading new coordinates:', {
-        x: selectedXCoord.displayName,
-        y: selectedYCoord.displayName,
-        z: selectedZCoord ? selectedZCoord.displayName : 'None'
-    });
-    
-    // Load new coordinate values
-    const nCells = allData.length;
-    const xValues = await loadCoordinateValues(zarrRoot, selectedXCoord, nCells);
-    const yValues = await loadCoordinateValues(zarrRoot, selectedYCoord, nCells);
-    const zValues = selectedZCoord ? await loadCoordinateValues(zarrRoot, selectedZCoord, nCells) : null;
 
-    flipAxisInPlace(xValues, getAxisFlip(selectedXCoord, 'x'));
-    flipAxisInPlace(yValues, getAxisFlip(selectedYCoord, 'y'));
-    if (zValues) {
-        flipAxisInPlace(zValues, getAxisFlip(selectedZCoord, 'z'));
-    }
-    
-    // Update data
-    for (let i = 0; i < nCells; i++) {
-        allData[i].x = xValues[i] || 0;
-        allData[i].y = yValues[i] || 0;
-        allData[i].z = zValues ? (zValues[i] || 0) : 0;
-    }
-    
-    // Recreate point cloud with new coordinates
-    await createPointCloud();
+    setPointSizeValue(getDefaultPointSizeForCurrentCoordinates(presetId));
+    await applyCoordinatePreset(presetId, { recreatePointCloud: true });
+    resetCameraToCurrentVisibleData();
 }
 
 // Setup event listeners
@@ -4643,68 +4691,21 @@ function setupEventListeners() {
         throttleFilterUpdate();
     });
     
-    // Coordinate selection handlers
-    const coordXSelect = document.getElementById('coordX');
-    const coordYSelect = document.getElementById('coordY');
-    const coordZSelect = document.getElementById('coordZ');
-    if (coordXSelect) {
-        coordXSelect.addEventListener('change', handleCoordinateChange);
-    }
-    if (coordYSelect) {
-        coordYSelect.addEventListener('change', handleCoordinateChange);
-    }
-    if (coordZSelect) {
-        coordZSelect.addEventListener('change', handleCoordinateChange);
+    // Coordinate preset handler
+    const coordPresetSelect = document.getElementById('coordPreset');
+    if (coordPresetSelect) {
+        coordPresetSelect.addEventListener('change', handleCoordinateChange);
     }
     
     // Gene winsorization handlers are now attached dynamically in addGeneWinsorizationControlsToLegend
     // No need to set them up here since controls are created dynamically
     
     document.getElementById('resetCamera').addEventListener('click', () => {
-        if (pointCloud) {
-            // Recalculate bounding box from current visible data
-            const positions = [];
-            if (visibleIndices && visibleIndices.length > 0) {
-                const MAX_SAMPLE = 10000; // Sample points for bounding box calculation
-                const step = Math.max(1, Math.floor(visibleIndices.length / MAX_SAMPLE));
-                for (let i = 0; i < visibleIndices.length; i += step) {
-                    const point = allData[visibleIndices[i]];
-                    positions.push(point.x, point.y, point.z);
-                }
-            }
-            
-            if (positions.length > 0) {
-                const tempGeometry = new THREE.BufferGeometry();
-                tempGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-                tempGeometry.computeBoundingBox();
-                setCameraToXYPlaneView(tempGeometry);
-                tempGeometry.dispose();
-            } else if (initialCameraState.position && initialCameraState.target) {
-                // Fall back to stored initial state
-                camera.position.copy(initialCameraState.position);
-                controls.target.copy(initialCameraState.target);
-                camera.lookAt(initialCameraState.target);
-                controls.update();
-            }
-        } else if (initialCameraState.position && initialCameraState.target) {
-            // Use stored initial state if no point cloud yet
-            camera.position.copy(initialCameraState.position);
-            controls.target.copy(initialCameraState.target);
-            camera.lookAt(initialCameraState.target);
-            controls.update();
-        }
+        resetCameraToCurrentVisibleData();
     });
 
     document.getElementById('resetPointSize').addEventListener('click', () => {
-        const pointSizeInput = document.getElementById('pointSize');
-        const pointSizeValue = document.getElementById('pointSizeValue');
-        if (!pointSizeInput) {
-            return;
-        }
-        pointSizeInput.value = DEFAULT_POINT_SIZE;
-        if (pointSizeValue) {
-            pointSizeValue.textContent = DEFAULT_POINT_SIZE.toFixed(1);
-        }
+        setPointSizeValue(getDefaultPointSizeForCurrentCoordinates());
         throttleFilterUpdate();
     });
 }
