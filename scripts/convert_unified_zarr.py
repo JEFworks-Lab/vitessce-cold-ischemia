@@ -6,7 +6,7 @@ This script:
 - Uses a single CI_cells_*.json for obs + spatial coordinates.
 - Unions genes across the six CI_clusters_*.json files.
 - Writes membership columns in var for each up/down + compartment set.
-- Adds slope columns per compartment from CIS_slopes_by_section.json.
+- Adds slope and R2 columns per compartment from the DEG stats JSON.
 - Adds harmonized tSNE embeddings to obsm.
 - Stores X as CSC (cells x genes), which your JS expects for gene lookup.
 """
@@ -124,12 +124,13 @@ def build_union_matrix(data_dir: Path, set_files, cell_ids, verify_cols: bool, c
     return gene_names, rows_by_set, Xg, mismatches
 
 
-def load_slopes(slopes_path: Path):
-    data = load_json(slopes_path)
-    sections = data.get("sections")
-    if not isinstance(sections, dict):
-        raise ValueError(f"Unexpected slopes file format: {slopes_path}")
-    return sections
+def load_gene_stats_by_section(stats_path: Path):
+    data = load_json(stats_path)
+    if isinstance(data, dict):
+        if isinstance(data.get("sections"), dict):
+            return data["sections"]
+        return data
+    raise ValueError(f"Unexpected DEG stats file format: {stats_path}")
 
 
 def load_tsne_embeddings(tsne_path: Path, cell_ids):
@@ -234,26 +235,48 @@ def build_timecourse_matrix(gene_names, timecourse_by_gene, compartments, times)
     return matrix, meta
 
 
-def build_var(gene_names, rows_by_set, slopes_by_section):
+def build_var(gene_names, rows_by_set, gene_stats_by_section):
     idx = pd.Index(gene_names)
     var = pd.DataFrame(index=idx)
     for set_name, genes in rows_by_set.items():
         var[set_name] = idx.isin(genes)
 
-    slope_column_map = {
-        "Cortex": "Cortex_Slopes",
-        "Inner_Medulla": "Inner_Medulla_Slopes",
-        "Outer_Medulla": "Outer_Medulla_Slopes",
+    section_column_map = {
+        "Cortex": {
+            "Slope": "Cortex_Slopes",
+            "R2": "Cortex_R2",
+        },
+        "Inner_Medulla": {
+            "Slope": "Inner_Medulla_Slopes",
+            "R2": "Inner_Medulla_R2",
+        },
+        "Outer_Medulla": {
+            "Slope": "Outer_Medulla_Slopes",
+            "R2": "Outer_Medulla_R2",
+        },
     }
-    for section_key, col_name in slope_column_map.items():
-        section = slopes_by_section.get(section_key)
+
+    for section_key, metric_column_map in section_column_map.items():
+        section = gene_stats_by_section.get(section_key)
         if section is None:
             continue
-        values = np.full(len(idx), np.nan, dtype=np.float32)
-        for i, gene in enumerate(idx):
-            if gene in section:
-                values[i] = section[gene]
-        var[col_name] = values
+        for metric_key, col_name in metric_column_map.items():
+            values = np.full(len(idx), np.nan, dtype=np.float32)
+            for i, gene in enumerate(idx):
+                if gene not in section:
+                    continue
+                gene_stats = section[gene]
+                if isinstance(gene_stats, dict):
+                    metric_value = gene_stats.get(metric_key)
+                elif metric_key == "Slope":
+                    # Backward compatibility with the older slope-only JSON.
+                    metric_value = gene_stats
+                else:
+                    metric_value = np.nan
+                if metric_value is None:
+                    continue
+                values[i] = np.float32(metric_value)
+            var[col_name] = values
 
     return var
 
@@ -288,8 +311,11 @@ def main():
     )
     parser.add_argument(
         "--slopes-file",
-        default="CIS_slopes_by_section.json",
-        help="Gene slope JSON file name or path (default: CIS_slopes_by_section.json)",
+        default="CIS_All_DEGs_Slope_R2_by_section.json",
+        help=(
+            "Gene DEG stats JSON file name or path "
+            "(default: CIS_All_DEGs_Slope_R2_by_section.json)"
+        ),
     )
     parser.add_argument(
         "--tsne-file",
@@ -350,8 +376,8 @@ def main():
     if not slopes_path.is_absolute():
         slopes_path = data_dir / slopes_path
     if not slopes_path.exists():
-        raise FileNotFoundError(f"Slopes file not found: {slopes_path}")
-    slopes_by_section = load_slopes(slopes_path)
+        raise FileNotFoundError(f"DEG stats file not found: {slopes_path}")
+    gene_stats_by_section = load_gene_stats_by_section(slopes_path)
 
     gene_names, rows_by_set, Xg, mismatches = build_union_matrix(
         data_dir,
@@ -361,7 +387,7 @@ def main():
         check_duplicates=args.check_duplicate_values,
     )
 
-    var = build_var(gene_names, rows_by_set, slopes_by_section)
+    var = build_var(gene_names, rows_by_set, gene_stats_by_section)
 
     timecourse_by_gene, timecourse_compartments, timecourse_times, timecourse_mismatches = (
         load_timecourse_files(data_dir, args.timecourse_glob)

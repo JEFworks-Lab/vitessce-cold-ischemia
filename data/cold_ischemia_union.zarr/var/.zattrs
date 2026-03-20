@@ -8,8 +8,11 @@
         "outer_medulla_up",
         "outer_medulla_down",
         "Cortex_Slopes",
+        "Cortex_R2",
         "Inner_Medulla_Slopes",
-        "Outer_Medulla_Slopes"
+        "Inner_Medulla_R2",
+        "Outer_Medulla_Slopes",
+        "Outer_Medulla_R2"
     ],
     "encoding-type": "dataframe",
     "encoding-version": "0.2.0"

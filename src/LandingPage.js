@@ -44,8 +44,8 @@ export default function LandingPage() {
 
           Our analysis revealed that these compartments respond differently to cold ischemia over time. Most notably, the inner medulla exhibited unexpected activation of oxidative phosphorylation, despite limited oxygen—a sign of potential metabolic reprogramming. Additionally, we observed widespread oxidative stress and immune responses across all compartments, mimicking a viral-like response.
 
-          To generate the data driving the application, we used spatial transcriptomics to capture gene expression in mouse kidneys at various timepoints (0, 12, 24, and 48 hours). We then applied gene enrichment analysis and linear regression modeling to identify the most responsive genes in each compartment. Genes with the highest expression changes (top 10% slope values) were selected. These compartment- and direction-specific gene lists (upregulated, downregulated, global) form the foundation of each visualization in the app.
-
+          To generate the data driving the application, we used spatial transcriptomics to capture gene expression in mouse kidneys at various timepoints (0, 12, 24, and 48 hours). We then applied gene enrichment analysis and linear regression modeling to identify the most responsive genes in each compartment.
+          
           Whether you're a clinician, researcher, or student, the Cold Ischemia Kidney App offers a clear, compartment-specific view into how kidney tissues respond to injury over time—helping translate complex datasets into actionable insights for science and medicine.</p>
       </section>
 
@@ -53,7 +53,7 @@ export default function LandingPage() {
         <h3>Tutorial</h3>
         <p>Watch the tutorial below to learn how to interact with our data.</p>
         <div className="video-wrapper">
-          <iframe width="560" height="315" src="https://www.youtube.com/embed/PND06H7RCAw?si=tbb1qlqKaYa6xDgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/w4B--g5rDC8?si=HqY9Cep_UoWe8zFv" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         </div>
       </section>
 
