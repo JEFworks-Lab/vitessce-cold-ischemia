@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as zarr from 'zarrita';
+import FetchStore from '@zarrita/storage/fetch';
 import * as d3 from 'd3';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
@@ -2429,7 +2430,7 @@ async function loadData() {
         console.log(`[loadData] Opening zarr store: ${ZARR_PATH}`);
         const baseUrl = new URL(ZARR_PATH, window.location.href).href;
         zarrBaseUrl = baseUrl; // Save for lazy loading
-        const store = new zarr.FetchStore(baseUrl);
+        const store = new FetchStore(baseUrl);
         const root = zarr.root(store);
         zarrRoot = root; // Save for loading genes later
         
