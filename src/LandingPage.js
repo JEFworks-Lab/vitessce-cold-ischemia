@@ -23,7 +23,8 @@ export default function LandingPage() {
       </nav>
 
       <header className="page-header">
-        <h1>Spatiotemporal Transcriptomic Analysis of the Murine Kidney Reveals Compartment-Specific Changes During Cold Ischemic Injury</h1>
+        <h1>Spatiotemporal Transcriptomic Analysis During Cold Ischemic Injury to the Murine Kidney Reveals Compartment-Specific Changes
+        </h1>
       </header>
 
       <section className="abstract-authors" id="abstract-authors">
