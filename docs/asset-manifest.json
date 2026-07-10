@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/CellCarto-ColdIschemia/static/css/main.133a1cf2.css",
-    "main.js": "/CellCarto-ColdIschemia/static/js/main.bc38302d.js",
+    "main.js": "/CellCarto-ColdIschemia/static/js/main.a9389d6d.js",
     "static/js/453.4879c497.chunk.js": "/CellCarto-ColdIschemia/static/js/453.4879c497.chunk.js",
     "index.html": "/CellCarto-ColdIschemia/index.html",
     "main.133a1cf2.css.map": "/CellCarto-ColdIschemia/static/css/main.133a1cf2.css.map",
-    "main.bc38302d.js.map": "/CellCarto-ColdIschemia/static/js/main.bc38302d.js.map",
+    "main.a9389d6d.js.map": "/CellCarto-ColdIschemia/static/js/main.a9389d6d.js.map",
     "453.4879c497.chunk.js.map": "/CellCarto-ColdIschemia/static/js/453.4879c497.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.133a1cf2.css",
-    "static/js/main.bc38302d.js"
+    "static/js/main.a9389d6d.js"
   ]
 }

@@ -35,7 +35,7 @@ export default function LandingPage() {
           <strong>Authors:</strong> Srujan Singh, Shishir Kumar Patel, Ryo Matsuura, Dee Velazquez, Zhaoli Sun, Sanjeev Noel, Hamid Rabb, & Jean Fan 
           <br /><br />
         </p>
-        <a href="https://www.biorxiv.org/content/10.1101/2025.05.25.654911v2" target="_blank" className="button">Read Manuscript</a>
+        <a href="https://link.springer.com/article/10.1186/s13059-026-04167-y" target="_blank" className="button">Read Manuscript</a>
       </section>
 
       <section className="about" id="about">
